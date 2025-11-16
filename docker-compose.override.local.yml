@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  api:
+    ports:
+      - "8000:8000"
+    environment:
+      - API_PORT=8000
+    volumes:
+      - ./api:/api:cached
+      - api_node_modules:/api/node_modules
+volumes:
+  api_node_modules:

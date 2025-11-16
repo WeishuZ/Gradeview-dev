@@ -1,0 +1,147 @@
+{
+    "data": {
+        "Quest": {
+            "Abstraction": {
+                "student": 2,
+                "max": 2
+            },
+            "Number Representation": {
+                "student": 2,
+                "max": 2
+            },
+            "Iteration": {
+                "student": 4,
+                "max": 4
+            },
+            "Domain and Range": {
+                "student": 4,
+                "max": 4
+            },
+            "Booleans": {
+                "student": 4,
+                "max": 4
+            },
+            "Functions": {
+                "student": 4,
+                "max": 4
+            },
+            "HOFs I": {
+                "student": 5,
+                "max": 5
+            }
+        },
+        "Midterm": {
+            "Algorithms": {
+                "student": 2,
+                "max": 2
+            },
+            "Computers and Education": {
+                "student": 2,
+                "max": 2
+            },
+            "Testing + 2048 + Mutable/Immutable": {
+                "student": 2,
+                "max": 2
+            },
+            "Saving the World with Computing": {
+                "student": 2,
+                "max": 2
+            },
+            "Debugging": {
+                "student": 4,
+                "max": 4
+            },
+            "Scope": {
+                "student": 4,
+                "max": 4
+            },
+            "Iteration and Randomness": {
+                "student": 4,
+                "max": 4
+            },
+            "Recursion Tracing": {
+                "student": 4,
+                "max": 4
+            },
+            "Algorithmic Complexity": {
+                "student": 4,
+                "max": 4
+            },
+            "HOFs II": {
+                "student": 4,
+                "max": 4
+            },
+            "Fractal": {
+                "student": 4,
+                "max": 4
+            }
+        },
+        "Postterm": {
+            "Python Advanced": {
+                "student": 4,
+                "max": 4
+            },
+            "Programming Paradigms": {
+                "student": 50,
+                "max": 50
+            },
+            "HCI": {
+                "student": 10,
+                "max": 10
+            },
+            "Generative AI": {
+                "student": 25,
+                "max": 25
+            },
+            "Ethics in AI": {
+                "student": 35,
+                "max": 35
+            },
+            "Generic Base Conversion": {
+                "student": 100,
+                "max": 100
+            },
+            "Concurrency": {
+                "student": 100,
+                "max": 100
+            },
+            "HOFs III": {
+                "student": 2,
+                "max": 2
+            },
+            "Coding Snap! Recursive Reporter and HOF": {
+                "student": 2,
+                "max": 2
+            },
+            "Coding Python Data Structures": {
+                "student": 2,
+                "max": 2
+            }
+        },
+        "Projects": {
+            "Project 1: Wordle™-lite": {
+                "student": 2,
+                "max": 2
+            },
+            "Project 2: Spelling Bee": {
+                "student": 5,
+                "max": 5
+            },
+            "Project 3: 2048": {
+                "student": 5,
+                "max": 5
+            },
+            "Project 4: Deez Nutz": {
+                "student": 5,
+                "max": 5
+            },
+            "Project 5: Yolo": {
+                "student": 5,
+                "max": 5
+            },
+            "Project 6: jf": {
+                "student": "",
+                "max": ""
+            }
+        }
+}}

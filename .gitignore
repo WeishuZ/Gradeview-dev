@@ -1,0 +1,23 @@
+# dependencies
+**/node_modules/
+**/__pycache__/
+**/venv/
+**/.venv/
+
+# Environment variables
+**/*.env
+
+# Google Cloud Service Account Keys (CRITICAL SECURITY)
+# These files contain sensitive credentials and must NEVER be committed to Git.
+api/auth/gradeviewer-375700-1eb6df42b5bd.json
+api/auth/service_account.json
+server/auth/service_account.json
+# Or, if you want to be broader (if you store all keys in the 'auth' folder)
+# **/auth/*.json
+
+# production
+/website/server/build/
+
+# misc
+**/.DS_Store
+.vscode/
