@@ -16,8 +16,7 @@ router.get('/:section/:name', async (req, res) => {
             const studentId = student[1];
             const studentScores = await getStudentScores(studentId);
             const score = studentScores[section] ? studentScores[section][name] : null;
-            
-            console.log('Score for', studentId, 'is', score);
+        
 
             if (score != null && score !== '') {
                 return Number(score);

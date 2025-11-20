@@ -6,6 +6,7 @@ import StatsRouter from './stats/index.js';
 import DistributionRouter from './distribution/index.js';
 import StudentScoresRouter from './studentScores/index.js';
 import RateLimit from 'express-rate-limit';
+import SendEmailRouter from './sendEmail/index.js';
 
 const router = Router({ mergeParams: true });
 
@@ -26,6 +27,7 @@ router.use('/categories', CategoriesRouter);
 router.use('/stats', StatsRouter);
 router.use('/distribution', DistributionRouter);
 router.use('/studentScores', StudentScoresRouter);
+router.use('/sendEmail', SendEmailRouter);
 
 // Default admin route
 router.get('/', (_, res) => {

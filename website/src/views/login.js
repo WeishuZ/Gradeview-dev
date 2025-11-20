@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {
@@ -18,25 +18,10 @@ import { jwtDecode } from 'jwt-decode';
 
 export default function Login() {
     const [error, setError] = useState(false);
-
-    // Initialize the google OAUTH
-    useEffect(() => {
-        /* global google */
-        if (window.google && window.google.accounts) {
-            google.accounts.id.initialize({
-                client_id:
-                    '960156693240-hje09pstet1al4g4tr08271kkcjfqnn2.apps.googleusercontent.com',
-                callback: handleGoogleLogin,
-            });
-            google.accounts.id.renderButton(
-                document.querySelector('#googleSignInButton'),
-                {},
-            );
-        }
-    }, [handleGoogleLogin]);
+    const googleInitialized = useRef(false);
 
     // Updates OAuth2 token to be the local token value
-    async function handleGoogleLogin(authData) {
+    const handleGoogleLogin = useCallback(async (authData) => {
         const token = `Bearer ${authData.credential}`;
         axios
             .get(`/api/v2/login`, {
@@ -60,7 +45,27 @@ export default function Login() {
             .catch(() => {
                 setError('An error occurred.  Please try again later.');
             });
-    }
+    }, []);
+
+    // Initialize the google OAUTH
+    useEffect(() => {
+        // Prevent multiple initializations due to React StrictMode or re-renders
+        if (googleInitialized.current) return;
+        
+        /* global google */
+        if (window.google && window.google.accounts) {
+            google.accounts.id.initialize({
+                client_id:
+                    '960156693240-hje09pstet1al4g4tr08271kkcjfqnn2.apps.googleusercontent.com',
+                callback: handleGoogleLogin,
+            });
+            google.accounts.id.renderButton(
+                document.querySelector('#googleSignInButton'),
+                {},
+            );
+            googleInitialized.current = true;
+        }
+    }, [handleGoogleLogin]);
 
     // Formatting for the input fields
     const [showPassword, setShowPassword] = React.useState(false);

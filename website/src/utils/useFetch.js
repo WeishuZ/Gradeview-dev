@@ -27,7 +27,7 @@ export default function useFetch(
             .finally(() => {
                 setLoading(false);
             });
-    }, [stub, method, api]);
+    }, [stub, method]);
 
     return { loading, data, error };
 }

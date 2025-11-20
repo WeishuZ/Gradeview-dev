@@ -70,6 +70,14 @@ export default function Admin() {
 
   const [sortBy, setSortBy]   = useState(null); // 'Quest','Midterm','Labs','total' or assignment.name
   const [sortAsc, setSortAsc] = useState(true);
+
+
+  // --- EMAIL FORM STATE ---
+  const [mailRecipient, setMailRecipient] = useState(''); // Email address to send the list to
+  const [mailSubject, setMailSubject] = useState('');
+  const [mailBody, setMailBody] = useState('');
+  const [mailSending, setMailSending] = useState(false);
+  const [mailResult, setMailResult] = useState(null); // { success: boolean, message: string }
   const handleSort = col => {
     if (sortBy === col) setSortAsc(!sortAsc);
     else {
@@ -216,14 +224,64 @@ export default function Admin() {
     setStudentsByScoreError(null);
   };
 
+
+  const handleGenerateMailto = () => {
+      if (!studentsByScore || !studentsByScore.length || !selected || scoreSelected == null) {
+          alert('Student list, assignment name, or score data is missing.');
+          return;
+      }
+
+      const assignmentName = selected.name;
+      const score = scoreSelected;
+      
+      // 1. 格式化学生列表为纯文本
+      const studentListText = studentsByScore
+          .map(stu => `- ${stu.name} (${stu.email})`)
+          .join('\n');
+
+      // 2. 构造邮件正文
+      // 使用 mailBody（可选的用户输入前缀）和格式化的数据
+      const emailBodyContent = `${mailBody ? mailBody + '\n\n' : ''}` + 
+                              `---\n` +
+                              `Assignment: ${assignmentName}\n` +
+                              `Score: ${score}\n` +
+                              `---\n\n` +
+                              `Students who achieved this score:\n${studentListText}`;
+
+      // 3. 确定收件人和主题
+      const recipient = mailRecipient || '';
+      const subject = mailSubject || `Score List for ${assignmentName}`;
+
+      // 4. 编码数据以确保在 URL 中安全传递
+      const mailto = `mailto:${encodeURIComponent(recipient)}` + 
+                    `?subject=${encodeURIComponent(subject)}` + 
+                    `&body=${encodeURIComponent(emailBodyContent)}`;
+      
+      const link = document.createElement('a');
+      
+      // 3. 设置 mailto 链接作为 href
+      link.href = mailto;
+      
+      // 4. 🌟 关键：设置 target="_blank" 让其在新窗口打开
+      link.target = '_blank'; 
+      
+      // 5. 将链接添加到文档中 (必须步骤)
+      document.body.appendChild(link);
+      
+      // 6. 模拟点击链接
+      link.click();
+      
+      // 7. 清理：从文档中移除临时链接
+      document.body.removeChild(link);
+  };
+
   useEffect(() => {
-    if (!scoreSelected || !selected) {
+    if (scoreSelected == null || !selected) {
       setStudentsByScore([]);
       return;
     }
     setStudentsByScoreLoading(true);
     setStudentsByScoreError(null);
-
     const { section, name } = selected; // The currently selected assignment
     const score = scoreSelected;
 
@@ -400,6 +458,69 @@ export default function Admin() {
             {!studentsByScoreLoading && !studentsByScore && !studentsByScoreError && (
             <Typography>No students found with this score.</Typography>
             )}
+
+            <Box mt={4} sx={{ borderTop: 1, borderColor: 'divider', pt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                    📧 Email Student List To
+                </Typography>
+                
+                {mailResult && (
+                    <Alert severity={mailResult.success ? "success" : "error"} sx={{ mb: 2 }}>
+                        {mailResult.message}
+                    </Alert>
+                )}
+                
+                {/* 1. Recipient Email */}
+                <Box mb={2}> 
+                    <TextField
+                        fullWidth
+                        label="Recipient Email (e.g., admin@example.com)"
+                        value={mailRecipient}
+                        onChange={e => { setMailRecipient(e.target.value); setMailResult(null); }}
+                        size="small"
+                    />
+                </Box>
+                
+                {/* 2. Subject */}
+                <Box mb={2}>
+                    <TextField
+                        fullWidth
+                        label="Subject (e.g., Score List for Quest 1)"
+                        value={mailSubject}
+                        onChange={e => setMailSubject(e.target.value)}
+                        size="small"
+                    />
+                </Box>
+                
+                {/* 3. Email Body */}
+                <Box mb={2}>
+                    <TextField
+                        fullWidth
+                        label="Email Body (Optional intro text)"
+                        multiline
+                        rows={3}
+                        value={mailBody}
+                        onChange={e => setMailBody(e.target.value)}
+                        size="small"
+                        placeholder="This text will appear above the student list in the email."
+                    />
+                </Box>
+                
+                <Box mt={2} display="flex" justifyContent="flex-end">
+                  <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleGenerateMailto} 
+                        // 移除 mailSending 状态，因为它与 mailto 链接无关
+                        disabled={!studentsByScore.length}
+                        sx={{ ml: 1 }}
+                    >
+                    Generate Email
+                  </Button>
+                </Box>
+        </Box>
+        
+
         </DialogContent>
         <DialogActions>
             <Button onClick={handleCloseScoreDialog}>Close</Button>

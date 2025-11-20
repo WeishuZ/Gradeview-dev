@@ -51,3 +51,54 @@ export function ensureStudentOrAdmin(email) {
     const isAdmin = config.get('admins').includes(email);
     return isAdmin;
 }
+
+
+// /**
+//  * @param {string} tokenString 完整的 Authorization header value (e.g., 'Bearer abc123xyz').
+//  * @returns {string} The raw Token value (e.g., 'abc123xyz').
+//  * @throws {AuthorizationError} if the format is invalid.
+//  */
+// function extractRawToken(tokenString) {
+//     if (!tokenString || !tokenString.startsWith('Bearer ')) {
+//         throw new AuthorizationError('Invalid authorization token format.');
+//     }
+//     return tokenString.split(' ')[1]; 
+// }
+
+// /**
+//  * Validates the ID Token, gets the email, and returns the raw Token value.
+//  * NOTE: This returns the ID Token, which is being used in lieu of a separate Access Token 
+//  * for temporary authentication purposes.
+//  * * @param {string} token user token to retrieve email from (Full "Bearer <TOKEN>" string).
+//  * @returns {{email: string, idToken: string}} Object containing the user's email and the raw token string.
+//  */
+// export async function getEmailAndTokenFromAuth(token) {
+//     const googleOauthAudience = config.get('googleconfig.oauth.clientid');
+    
+//     // 1. 提取裸 Token
+//     const rawToken = extractRawToken(token);
+    
+//     try {
+//         let oauthClient = new OAuth2Client(googleOauthAudience);
+//         const ticket = await oauthClient.verifyIdToken({
+//             idToken: rawToken, // 使用提取出的裸 token
+//             audience: googleOauthAudience,
+//         });
+//         const payload = ticket.getPayload();
+        
+//         if (payload['hd'] !== 'berkeley.edu') {
+//             throw new AuthorizationError('domain mismatch');
+//         }
+        
+//         return { 
+//             email: payload['email'],
+//             idToken: rawToken 
+//         };
+        
+//     } catch (err) {
+//         console.error('Error during Google authorization:', err);
+//         throw new AuthorizationError(
+//             'Could not authenticate authorization token.',
+//         );
+//     }
+// }
