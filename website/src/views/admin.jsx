@@ -36,6 +36,8 @@ import {
   LabelList,
 } from 'recharts';
 
+
+
 export default function Admin() {
   // TAB STATE
   const [tab, setTab] = useState(0);
@@ -58,6 +60,13 @@ export default function Admin() {
   const [studentScores, setStudentScores] = useState([]); // [{name,email,scores}]
   const [loadingSS, setLoadingSS]         = useState(false);
   const [errorSS, setErrorSS]             = useState();
+
+  // score details
+  const [scoreDetailOpen, setScoreDetailOpen]     = useState(false);
+  const [scoreSelected, setScoreSelected]         = useState(null); // The score that was clicked
+  const [studentsByScore, setStudentsByScore]     = useState([]); // Students with that score
+  const [studentsByScoreLoading, setStudentsByScoreLoading] = useState(false);
+  const [studentsByScoreError, setStudentsByScoreError] = useState(null);
 
   const [sortBy, setSortBy]   = useState(null); // 'Quest','Midterm','Labs','total' or assignment.name
   const [sortAsc, setSortAsc] = useState(true);
@@ -112,6 +121,7 @@ export default function Admin() {
     ])
       .then(([statsRes, distRes]) => {
         setStats(statsRes.data);
+        console.log('Distribution data:', distRes.data);
         setDistribution(distRes.data);
       })
       .catch(err => setStatsError(err.message || 'Failed to load stats'))
@@ -124,7 +134,7 @@ export default function Admin() {
     setLoadingSS(true);
     setErrorSS(null);
 
-    apiv2.get('/admin/student-scores')
+    apiv2.get('/admin/studentScores')
       .then(res => setStudentScores(res.data.students))
       .catch(err => setErrorSS(err.message || 'Failed to load student scores'))
       .finally(() => setLoadingSS(false));
@@ -181,6 +191,7 @@ export default function Admin() {
       setStatsError(null);
     }
   };
+
   const handleAssignClick = item => setSelected(item);
   const handleCloseDialog  = () => {
     setSelected(null);
@@ -188,6 +199,43 @@ export default function Admin() {
     setDistribution(null);
     setStatsError(null);
   };
+
+  const handleScoreClick = (data, index) => {
+    // 'data' here is the data point clicked: {score: N, count: M}
+    if (!selected) return; // Should not happen if dialog is open
+
+    setScoreSelected(data.score);
+    setScoreDetailOpen(true);
+  };
+
+  /** Close the student list dialog **/
+  const handleCloseScoreDialog = () => {
+    setScoreDetailOpen(false);
+    setScoreSelected(null);
+    setStudentsByScore([]); // Clear previous data
+    setStudentsByScoreError(null);
+  };
+
+  useEffect(() => {
+    if (!scoreSelected || !selected) {
+      setStudentsByScore([]);
+      return;
+    }
+    setStudentsByScoreLoading(true);
+    setStudentsByScoreError(null);
+
+    const { section, name } = selected; // The currently selected assignment
+    const score = scoreSelected;
+
+    console.log(`Fetching students for ${section}/${name} with score ${score}`);
+    apiv2.get(`/admin/studentScores/${encodeURIComponent(section)}/${encodeURIComponent(name)}/${score}`)
+      .then(res => {
+        // Assume API returns [{name, email, score}]
+        setStudentsByScore(res.data.students);
+      })
+      .catch(err => setStudentsByScoreError(err.message || 'Failed to load students for this score'))
+      .finally(() => setStudentsByScoreLoading(false));
+  }, [scoreSelected, selected]); // Rerun when scoreSelected or selected assignment changes
 
   return (
     <>
@@ -268,12 +316,13 @@ export default function Admin() {
                 <Typography>
                 <strong>Min:</strong> {stats.min ?? 'N/A'}
                 </Typography>
-
                 {distribution && (
                 <Box mt={4} height={300}>
                     <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                        data={distribution.freq.map((count, score) => ({ score, count }))}
+                        data={distribution.freq.map((count, index) => ({ 
+                          score: distribution.minScore + index, 
+                          count}))}
                         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" />
@@ -287,12 +336,15 @@ export default function Admin() {
                         label={{ value: 'Count', angle: -90, position: 'insideLeft' }}
                         />
                         <Tooltip />
+
                         <Bar
                         dataKey="count"
                         barSize={Math.max(5, Math.floor(400 / distribution.freq.length))}
+                        onClick={handleScoreClick}
                         >
                         <LabelList dataKey="count" position="top" />
                         </Bar>
+
                     </BarChart>
                     </ResponsiveContainer>
                 </Box>
@@ -308,6 +360,53 @@ export default function Admin() {
             <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
         </Dialog>
+        {/* Score Detail Dialog (Students for a specific score)*/}
+        <Dialog
+        open={scoreDetailOpen}
+        onClose={handleCloseScoreDialog}
+        fullWidth
+        maxWidth="sm"
+        >
+        <DialogTitle>
+            Students with Score **{scoreSelected}** on **{selected?.name}**
+        </DialogTitle>
+
+
+        <DialogContent>
+            {studentsByScoreLoading && <Typography>Loading student list…</Typography>}
+            {studentsByScoreError && <Alert severity="error">{studentsByScoreError}</Alert>}
+
+            {!studentsByScoreLoading && !studentsByScoreError && (
+            <TableContainer component={Paper}>
+                <Table size="small">
+                <TableHead>
+                    <TableRow>
+                    <TableCell><strong>Name</strong></TableCell>
+                    <TableCell><strong>Email</strong></TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {studentsByScore.map((stu, i) => (
+                    <TableRow key={i}>
+                        <TableCell>{stu.name}</TableCell>
+                        <TableCell>{stu.email}</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </TableContainer>
+            )}
+
+            {!studentsByScoreLoading && !studentsByScore && !studentsByScoreError && (
+            <Typography>No students found with this score.</Typography>
+            )}
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleCloseScoreDialog}>Close</Button>
+        </DialogActions>
+        </Dialog>
+
+{/* ... end of tab === 0 && (Box) */}
     </Box>
     )}
 

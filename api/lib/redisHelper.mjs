@@ -273,3 +273,35 @@ export async function getTopKTotalScores(k) {
         .sort((a, b) => b.total - a.total)
         .slice(0, k);
 }
+
+
+/**
+ * Gets a list of students who achieved a specific score on a specific assignment.
+ * @param {string} section - The category of the assignment (e.g., "Quest", "Labs").
+ * @param {string} assignmentName - The name of the assignment (e.g., "Quest 1", "Lab 2").
+ * @param {number|string} targetScore - The score to filter by.
+ * @returns {Promise<Array<object>>} Array of student objects { name, email, score }.
+ */
+export async function getStudentsByAssignmentScore(section, assignmentName, targetScore) {
+    const students = await getStudents(); // List of [legalName, email]
+    const numericTargetScore = +targetScore; // Ensure comparison is numeric
+    console.log(`Looking for students with score: ${numericTargetScore}`);
+    const studentsWithScore = await Promise.all(students.map(async ([name, email]) => {
+        const studentScores = await getStudentScores(email);
+        console.log(`Student ${name} (${email}) scores:`, studentScores);
+        // Safely access the score
+        const rawScore = studentScores?.[section]?.[assignmentName];
+        console.log(`Score for ${section} - ${assignmentName}:`, rawScore);
+        // Convert to number for comparison, handle null/empty strings gracefully
+        const score = (rawScore != null && rawScore !== "" && !isNaN(rawScore)) ? +rawScore : null;
+
+        // Check if the score matches the target score
+        if (score !== null && score === numericTargetScore) {
+            return { name, email, score };
+        }
+        return null;
+    }));
+
+    // Filter out students who didn't match the score or had no score
+    return studentsWithScore.filter(Boolean);
+}

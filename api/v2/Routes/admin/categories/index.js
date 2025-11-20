@@ -9,6 +9,8 @@ const router = Router({ mergeParams: true });
  * assignment name : max
  * Format: { section: { assignmentName: true } }
  */
+
+/** localhost/admin/categories/ */
 router.get('/', async (req, res) => {
     try {
         // Get categories from Redis or build from assignment data

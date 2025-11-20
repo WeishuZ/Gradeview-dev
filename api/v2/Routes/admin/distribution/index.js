@@ -4,8 +4,8 @@ const router = Router({ mergeParams: true });
 
 /**
  * GET /admin/distribution/:section/:name
- * Returns score distribution (histogram data)
- * Returns: { freq: [count0, count1, ...], bins: number, min, max, binWidth }
+ * Returns score distribution (frequency data, 1 score = 1 bucket).
+ * Returns: { freq: [count0, count1, ...], minScore: number, maxScore: number }
  */
 router.get('/:section/:name', async (req, res) => {
     try {
@@ -17,10 +17,14 @@ router.get('/:section/:name', async (req, res) => {
             
             const studentScores = await getStudentScores(studentId); 
             
+            // Assuming scores are under section/name and are numbers
             const score = studentScores[section] ? studentScores[section][name] : null;
             
-            if (score != null && score !== '') {
-                return Number(score);
+            if (score != null && score !== '' && !isNaN(score)) {
+                // Ensure we are working with integers for binning, 
+                // but keep original value for max/min if needed.
+                // Since scores are typically integers, we convert to Number.
+                return Number(score); 
             }
             return null;
         });
@@ -30,43 +34,45 @@ router.get('/:section/:name', async (req, res) => {
         const scores = rawScores.filter(score => score !== null);
 
         if (scores.length === 0) {
-            return res.json({ freq: [], bins: 0, min: 0, max: 0, binWidth: 0 });
+            // Return empty data structure
+            return res.json({ freq: [], minScore: 0, maxScore: 0 });
         }
 
         
-        const max = Math.max(...scores);
-        const min = Math.min(...scores);
-        const defaultBins = 10;
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
         
-        const binWidth = (max - min) / defaultBins;
-        const bins = defaultBins; 
+        // --- Logic for 1-point buckets ---
+
+        // The number of buckets needed, plus 1 (inclusive range)
+        const range = maxScore - minScore + 1;
         
-        const freq = Array(bins + 1).fill(0); 
+        // Initialize frequency array with size 'range', all counts start at 0
+        const freq = Array(range).fill(0); 
 
         scores.forEach(score => {
-            let binIndex = Math.floor((score - min) / binWidth);
+            // Calculate the index relative to the minScore.
+            // A score equal to minScore goes into index 0.
+            const index = score - minScore;
 
-            if (score === max) {
-                 binIndex = bins;
-            } else if (binIndex > bins) { 
-                 binIndex = bins;
-            } else if (binIndex < 0) {
-                 binIndex = 0;
+            // This condition is robust because scores are filtered to be between minScore and maxScore.
+            if (index >= 0 && index < range) {
+                freq[index]++;
             }
-
-            freq[binIndex]++;
         });
+        
+        // --- END Logic for 1-point buckets ---
 
         res.json({
+            // freq array now contains counts where freq[i] is the count for score (minScore + i)
             freq,
-            bins: defaultBins, 
-            min,
-            max,
-            binWidth: parseFloat(binWidth.toFixed(4))
+            minScore,
+            maxScore
+            // Removed: bins, max, min, binWidth
         });
     } catch (error) {
-        console.error('Error fetching distribution:', error);
-        res.status(500).json({ error: error.message || 'Failed to fetch distribution' });
+        console.error('Error fetching frequency distribution:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch frequency distribution' });
     }
 });
 

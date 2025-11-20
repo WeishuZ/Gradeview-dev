@@ -25,7 +25,7 @@ router.use('/progressreports', ProgressReportsRouter);
 router.use('/categories', CategoriesRouter);
 router.use('/stats', StatsRouter);
 router.use('/distribution', DistributionRouter);
-router.use('/student-scores', StudentScoresRouter);
+router.use('/studentScores', StudentScoresRouter);
 
 // Default admin route
 router.get('/', (_, res) => {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getStudents, getStudentScores } from '../../../../lib/redisHelper.mjs'; 
+import { getStudents, getStudentScores, getStudentsByAssignmentScore } from '../../../../lib/redisHelper.mjs'; 
 
 const router = Router({ mergeParams: true });
 
@@ -37,5 +37,39 @@ router.get('/', async (req, res) => {
         });
     }
 });
+
+/**
+ * GET /admin/students-by-score/:section/:assignment/:score
+ * Returns students who achieved the specified score on the assignment.
+ */
+router.get('/:section/:assignment/:score', async (req, res) => {
+    const { section, assignment, score } = req.params;
+    console.log(`Fetching students for score ${score} on assignment ${assignment} in section ${section}`);
+    // Decode parameters (useful if assignment names contain URL-unsafe characters)
+    const decodedSection = decodeURIComponent(section);
+    const decodedAssignment = decodeURIComponent(assignment);
+    
+    // The score can be passed directly to the helper function, which handles conversion
+    const targetScore = score; 
+
+    try {
+        const students = await getStudentsByAssignmentScore(
+            decodedSection,
+            decodedAssignment,
+            targetScore
+        );
+
+        res.json({
+            students: students
+        });
+    } catch (error) {
+        console.error(`Error fetching students for score ${targetScore} on ${decodedAssignment}:`, error);
+        res.status(500).json({ 
+            error: error.message || 'Failed to fetch students by score',
+            students: []
+        });
+    }
+});
+
 
 export default router;
